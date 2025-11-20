@@ -1,0 +1,183 @@
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const SYSTEM_PROMPT = `한국의 초등학교 2022 개정 교육과정 전문가입니다.
+학교자율시간 계획서를 다음 원칙에 따라 작성합니다:
+
+1. 지도계획에 모든 차시에 학습내용과 학습 주제가 빈틈없이 내용이 꼭 들어가야 합니다.
+2. 학습자 중심의 교육과정 초등학교 3,4학년 수준에 맞는 쉽게 내용을 만들어 주세요.
+3. 실생활 연계 및 체험 중심 활동
+4. 교과 간 연계 및 통합적 접근
+5. 초등학교 3학년, 4학년 수준에 맞아야 한다.
+6. 요구사항을 반영한 맞춤형 교육과정 구성
+7. 교수학습 방법의 다양화
+8. 객관적이고 공정한 평가계획 수립
+9. 초등학교 수준에 맞는 내용 구성`;
+
+export async function generateContent(step: number, data: any): Promise<any> {
+  try {
+    const prompt = buildPrompt(step, data);
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: prompt + "\n\n(위 형식으로 JSON만 반환)" }
+      ],
+      temperature: 0.7,
+      max_tokens: step === 6 ? 3000 : 1800,
+    });
+
+    const rawText = response.choices[0].message.content?.trim()
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
+
+    if (!rawText) {
+      throw new Error('Empty response from OpenAI');
+    }
+
+    return JSON.parse(rawText);
+  } catch (error) {
+    console.error('OpenAI API Error:', error);
+    throw error;
+  }
+}
+
+function buildPrompt(step: number, data: any): string {
+  switch (step) {
+    case 1:
+      return buildStep1Prompt(data);
+    case 3:
+      return buildStep3Prompt(data);
+    case 4:
+      return buildStep4Prompt(data);
+    case 5:
+      return buildStep5Prompt(data);
+    case 6:
+      return buildStep6Prompt(data);
+    default:
+      return '';
+  }
+}
+
+function buildStep1Prompt(data: any): string {
+  return `학교자율시간 활동의 기본 정보를 작성해주세요.
+
+활동명: ${data.activity_name}
+요구사항: ${data.requirements}
+학교급: ${data.school_type}
+대상 학년: ${data.grades?.join(', ')}
+연계 교과: ${data.subjects?.join(', ')}
+총 차시: ${data.total_hours}차시
+운영 학기: ${data.semester?.join(', ')}
+
+'필요성(necessity)', '개요(overview)'만 작성해 주세요.
+
+다음 JSON 형식으로 작성:
+{
+  "necessity": "작성된 필요성 내용",
+  "overview": "작성된 개요 내용"
+}`;
+}
+
+function buildStep3Prompt(data: any): string {
+  return `활동명: ${data.activity_name}
+요구사항: ${data.requirements}
+학교급: ${data.school_type}
+대상 학년: ${data.grades?.join(', ')}
+연계 교과: ${data.subjects?.join(', ')}
+
+'영역명(domain)', '핵심 아이디어(key_ideas)', '내용 요소(content_elements)' 4개 세트를 생성해주세요.
+
+총 4개의 객체가 있는 JSON 배열로 반환:
+[
+  {
+    "domain": "...",
+    "key_ideas": [...],
+    "content_elements": {
+      "knowledge_and_understanding": [...],
+      "process_and_skills": [...],
+      "values_and_attitudes": [...]
+    }
+  }
+]`;
+}
+
+function buildStep4Prompt(data: any): string {
+  const contentSets = data.content_sets || [];
+  const numSets = contentSets.length;
+  const grades = data.grades || [];
+  const subjects = data.subjects || [];
+  const activityName = data.activity_name || '';
+
+  let gradePart = grades.length > 0 ? grades[0].replace("학년", "").trim() : "";
+  let subjectPart = subjects.length > 0 && subjects[0] ? subjects[0][0] : "";
+  let actPart = activityName.length > 0 ? activityName.slice(0, 2) : "";
+  const codePrefix = `${gradePart}${subjectPart}${actPart}`;
+
+  return `내용 체계: ${JSON.stringify(contentSets)}
+
+총 ${numSets}개 성취기준을 생성해주세요.
+성취기준코드는 "${codePrefix}-01", "${codePrefix}-02" 형식으로 생성.
+
+JSON 형식:
+[
+  {
+    "code": "${codePrefix}-01",
+    "description": "성취기준 설명",
+    "levels": [
+      { "level": "A", "description": "상 수준" },
+      { "level": "B", "description": "중 수준" },
+      { "level": "C", "description": "하 수준" }
+    ]
+  }
+]`;
+}
+
+function buildStep5Prompt(data: any): string {
+  return `성취기준: ${JSON.stringify(data.standards)}
+
+교수학습방법과 평가계획을 작성해주세요.
+
+JSON 형식:
+{
+  "teaching_methods_text": "교수학습방법 여러 줄...",
+  "assessment_plan": [
+    {
+      "code": "성취기준코드",
+      "description": "성취기준문장",
+      "element": "평가요소",
+      "method": "수업평가방법",
+      "criteria_high": "상 수준",
+      "criteria_mid": "중 수준",
+      "criteria_low": "하 수준"
+    }
+  ]
+}`;
+}
+
+function buildStep6Prompt(data: any): string {
+  const totalHours = data.total_hours || 30;
+
+  return `총 ${totalHours}차시의 차시별 계획을 작성해주세요.
+
+활동명: ${data.activity_name}
+요구사항: ${data.requirements}
+대상 학년: ${data.grades?.join(', ')}
+
+JSON 형식:
+{
+  "lesson_plans": [
+    {
+      "lesson_number": "1",
+      "topic": "학습주제",
+      "content": "학습내용",
+      "materials": "교수학습자료"
+    }
+  ]
+}`;
+}
