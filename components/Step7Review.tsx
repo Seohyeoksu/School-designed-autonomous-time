@@ -149,7 +149,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                       <Input
                         value={set.domain}
                         onChange={(e) => {
-                          const newSets = [...editData.content_sets];
+                          const newSets = [...(editData.content_sets || [])];
                           newSets[idx].domain = e.target.value;
                           setEditData({ ...editData, content_sets: newSets });
                         }}
@@ -160,7 +160,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                       <Textarea
                         value={set.key_ideas.join("\n")}
                         onChange={(e) => {
-                          const newSets = [...editData.content_sets];
+                          const newSets = [...(editData.content_sets || [])];
                           newSets[idx].key_ideas = e.target.value.split("\n");
                           setEditData({ ...editData, content_sets: newSets });
                         }}
@@ -193,7 +193,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                       <Textarea
                         value={std.description}
                         onChange={(e) => {
-                          const newStds = [...editData.standards];
+                          const newStds = [...(editData.standards || [])];
                           newStds[idx].description = e.target.value;
                           setEditData({ ...editData, standards: newStds });
                         }}
@@ -206,7 +206,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                         <Textarea
                           value={level.description}
                           onChange={(e) => {
-                            const newStds = [...editData.standards];
+                            const newStds = [...(editData.standards || [])];
                             newStds[idx].levels[levelIdx].description = e.target.value;
                             setEditData({ ...editData, standards: newStds });
                           }}
@@ -255,7 +255,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                         <Input
                           value={plan.element}
                           onChange={(e) => {
-                            const newPlan = [...editData.assessment_plan];
+                            const newPlan = [...(editData.assessment_plan || [])];
                             newPlan[idx].element = e.target.value;
                             setEditData({ ...editData, assessment_plan: newPlan });
                           }}
@@ -266,7 +266,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                         <Textarea
                           value={plan.method}
                           onChange={(e) => {
-                            const newPlan = [...editData.assessment_plan];
+                            const newPlan = [...(editData.assessment_plan || [])];
                             newPlan[idx].method = e.target.value;
                             setEditData({ ...editData, assessment_plan: newPlan });
                           }}
@@ -278,7 +278,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                         <Textarea
                           value={plan.criteria_high}
                           onChange={(e) => {
-                            const newPlan = [...editData.assessment_plan];
+                            const newPlan = [...(editData.assessment_plan || [])];
                             newPlan[idx].criteria_high = e.target.value;
                             setEditData({ ...editData, assessment_plan: newPlan });
                           }}
@@ -290,7 +290,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                         <Textarea
                           value={plan.criteria_mid}
                           onChange={(e) => {
-                            const newPlan = [...editData.assessment_plan];
+                            const newPlan = [...(editData.assessment_plan || [])];
                             newPlan[idx].criteria_mid = e.target.value;
                             setEditData({ ...editData, assessment_plan: newPlan });
                           }}
@@ -302,7 +302,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                         <Textarea
                           value={plan.criteria_low}
                           onChange={(e) => {
-                            const newPlan = [...editData.assessment_plan];
+                            const newPlan = [...(editData.assessment_plan || [])];
                             newPlan[idx].criteria_low = e.target.value;
                             setEditData({ ...editData, assessment_plan: newPlan });
                           }}
@@ -335,7 +335,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                         <Input
                           value={lesson.topic}
                           onChange={(e) => {
-                            const newLessons = [...editData.lesson_plans];
+                            const newLessons = [...(editData.lesson_plans || [])];
                             newLessons[idx].topic = e.target.value;
                             setEditData({ ...editData, lesson_plans: newLessons });
                           }}
@@ -346,7 +346,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                         <Textarea
                           value={lesson.content}
                           onChange={(e) => {
-                            const newLessons = [...editData.lesson_plans];
+                            const newLessons = [...(editData.lesson_plans || [])];
                             newLessons[idx].content = e.target.value;
                             setEditData({ ...editData, lesson_plans: newLessons });
                           }}
@@ -358,7 +358,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                         <Input
                           value={lesson.materials}
                           onChange={(e) => {
-                            const newLessons = [...editData.lesson_plans];
+                            const newLessons = [...(editData.lesson_plans || [])];
                             newLessons[idx].materials = e.target.value;
                             setEditData({ ...editData, lesson_plans: newLessons });
                           }}
