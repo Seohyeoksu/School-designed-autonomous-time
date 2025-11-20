@@ -232,7 +232,7 @@ export function Step1BasicInfo({ data, onNext, onUpdate }: StepProps) {
                       <strong className="text-sky-600">연간 34주 기준</strong>으로 교과별 및 창의적 체험활동 수업 시간 수의 학기별 1주의 수업 시간을 확보하여 학기 단위로 운영
                     </li>
                     <li>
-                      실제 교육과정을 운영하는 시간을 기준으로 각 학년에서 편성한 <strong className="text-sky-600">'총 수업 시간 수'</strong>에 따라 편성
+                      실제 교육과정을 운영하는 시간을 기준으로 각 학년에서 편성한 <strong className="text-sky-600">&apos;총 수업 시간 수&apos;</strong>에 따라 편성
                     </li>
                     <li>
                       운영 시수의 순증도 가능하며, 시수 확보 과정에서 <strong className="text-sky-600">특정 과목이나 영역의 시수가 지나치게 줄지 않도록 유의</strong>
