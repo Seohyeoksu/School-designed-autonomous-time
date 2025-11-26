@@ -38,7 +38,7 @@ function expandQueryWithKeywords(query: string): string[] {
 export async function searchSimilarDocuments(
   query: string,
   matchCount: number = 10
-): Promise<Array<Record<string, any>>> {
+): Promise<Array<{ content: string; similarity: number; metadata: any }>> {
   try {
     console.log('🔍 Searching for query:', query);
     
@@ -72,7 +72,7 @@ export async function searchSimilarDocuments(
       console.log('❌ Vector search insufficient, using enhanced fallback:', error);
       
       // Enhanced fallback with school autonomy keywords
-      let fallbackData: Array<Record<string, any>> = [];
+      let fallbackData: Array<{ id: string; content: string; metadata: any }> = [];
 
       // First try school autonomy specific keywords
       const autonomyKeywords = [];
@@ -158,7 +158,7 @@ export async function searchSimilarDocuments(
 export async function keywordSearch(
   query: string,
   matchCount: number = 10
-): Promise<Array<Record<string, any>>> {
+): Promise<Array<{ content: string; similarity: number; metadata: any }>> {
   try {
     console.log('🔑 Keyword search for:', query);
 
@@ -172,7 +172,7 @@ export async function keywordSearch(
       return [];
     }
 
-    let allResults: Array<Record<string, any>> = [];
+    let allResults: Array<{ id: string; content: string; metadata: any }> = [];
 
     // 각 키워드로 검색
     for (const keyword of keywords.slice(0, 5)) {

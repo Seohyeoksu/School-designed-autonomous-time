@@ -21,13 +21,8 @@ export async function generateContent(step: number, data: any): Promise<any> {
     const fullPrompt = `${SYSTEM_PROMPT}\n\n${prompt}\n\n추가 문장 없이 JSON만 반환`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
+      model: "gemini-2.5-flash",
       contents: fullPrompt,
-      config: {
-        thinkingConfig: {
-          thinkingLevel: "low",
-        },
-      },
     });
 
     const rawText = (response.text || '')
