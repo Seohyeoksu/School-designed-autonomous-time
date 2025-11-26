@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { ProgressSteps } from "@/components/ProgressSteps";
 import { Step1BasicInfo } from "@/components/Step1BasicInfo";
@@ -9,6 +10,7 @@ import { Step4Standards } from "@/components/Step4Standards";
 import { Step5Teaching } from "@/components/Step5Teaching";
 import { Step6LessonPlans } from "@/components/Step6LessonPlans";
 import { Step7Review } from "@/components/Step7Review";
+import { ChatInterface } from "@/components/chat-interface";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Tooltip,
@@ -16,9 +18,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { MessageCircle } from "lucide-react";
 
 export default function Home() {
   const { currentStep, data, setStep, updateData } = useStore();
+  const [chatOpen, setChatOpen] = useState(false);
 
   const handleNext = () => {
     if (currentStep < 7) {
@@ -57,7 +67,6 @@ export default function Home() {
     <TooltipProvider>
       <div className="min-h-screen">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 md:py-12 max-w-7xl">
-          {/* Responsive Header with Physics Animation */}
           <motion.header
             className="mb-6 sm:mb-8 md:mb-10"
             initial={{ opacity: 0, y: 30 }}
@@ -103,12 +112,12 @@ export default function Home() {
                 className="max-w-md sm:max-w-lg md:max-w-2xl p-4 bg-white border-2 border-sky-200 shadow-lg"
               >
                 <div className="space-y-2">
-                  <h3 className="font-bold text-sky-700 text-sm sm:text-base">📚 학교자율시간이란?</h3>
+                  <h3 className="font-bold text-sky-700 text-sm sm:text-base">학교자율시간이란?</h3>
                   <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
                     학교에서 <strong className="text-sky-600">지역과 학교의 여건 및 학생의 필요</strong>에 따라
                     교과 및 창의적 체험활동의 일부 시수를 확보하여
                     <strong className="text-sky-600"> 국가 교육과정에 제시되지 않은 새로운 과목</strong>을
-                    자유롭게 개발·운영하는 시간입니다.
+                    자유롭게 개발운영하는 시간입니다.
                   </p>
                 </div>
               </TooltipContent>
@@ -128,7 +137,6 @@ export default function Home() {
             </motion.p>
           </motion.header>
 
-        {/* Progress Steps with Spring Animation */}
         <motion.div
           className="mb-6 sm:mb-8"
           initial={{ opacity: 0, scale: 0.95 }}
@@ -143,7 +151,6 @@ export default function Home() {
           <ProgressSteps currentStep={currentStep} />
         </motion.div>
 
-        {/* Main Content with Page Transition */}
         <AnimatePresence mode="wait">
           <motion.main
             key={currentStep}
@@ -160,7 +167,6 @@ export default function Home() {
           </motion.main>
         </AnimatePresence>
 
-        {/* Footer */}
         <motion.footer
           className="mt-16 sm:mt-20 md:mt-24 pt-6 sm:pt-8 text-center"
           initial={{ opacity: 0 }}
@@ -181,6 +187,30 @@ export default function Home() {
           </motion.div>
         </motion.footer>
         </div>
+
+        <motion.button
+          onClick={() => setChatOpen(true)}
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <MessageCircle className="h-5 w-5" />
+          <span className="font-medium">질문하기</span>
+        </motion.button>
+
+        <Sheet open={chatOpen} onOpenChange={setChatOpen}>
+          <SheetContent side="right" className="w-full sm:w-[600px] md:w-[700px] lg:w-[800px] p-0 overflow-hidden">
+            <SheetHeader className="sr-only">
+              <SheetTitle>학교자율시간 질문하기</SheetTitle>
+            </SheetHeader>
+            <div className="h-full">
+              <ChatInterface />
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </TooltipProvider>
   );

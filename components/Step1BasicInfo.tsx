@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/tooltip";
 import { StepProps } from "@/types";
 import { Loader2 } from "lucide-react";
+import { QnaSection } from "@/components/ui/qna-tooltip";
 
 const ELEMENTARY_GRADES = ["3학년", "4학년", "5학년", "6학년"];
 const ELEMENTARY_SUBJECTS = [
@@ -291,6 +292,24 @@ export function Step1BasicInfo({ data, onNext, onUpdate }: StepProps) {
               className="mt-2"
             />
           </div>
+
+          {/* Q&A 섹션 */}
+          <QnaSection
+            quizzes={[
+              {
+                question: "학교자율시간이란 무엇인가요?",
+                answer: "지역과 학교의 여건 및 학생의 필요에 따라 교과 및 창의적 체험활동의 일부 시수를 확보하여 국가 교육과정에 제시되어 있는 교과 외 새로운 활동이나 과목을 개설·운영하는 시간입니다."
+              },
+              {
+                question: "학교자율시간 '활동'과 '과목'의 차이점은 무엇인가요?",
+                answer: "활동은 학교장 승인으로 개설되며 교수·학습자료만 필요합니다. 과목은 교육감 승인이 필요하고, 성격·목표·내용 체계·성취기준 등이 체계화되어야 하며, 인정도서 개발이 가능합니다."
+              },
+              {
+                question: "초등학교 3~4학년의 학기별 학교자율시간 운영 시수는 몇 차시인가요?",
+                answer: "초등학교 3~4학년은 학기별 29차시 이상, 5~6학년은 학기별 32차시 이상 운영합니다. 이는 연간 34주를 기준으로 학기별 1주의 수업 시간을 편성한 것입니다."
+              }
+            ]}
+          />
 
           <Button
             onClick={handleGenerate}

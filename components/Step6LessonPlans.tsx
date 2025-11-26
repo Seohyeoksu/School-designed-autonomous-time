@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StepProps, LessonPlan } from "@/types";
 import { Loader2 } from "lucide-react";
+import { QnaSection } from "@/components/ui/qna-tooltip";
 
 export function Step6LessonPlans({ data, onNext, onUpdate }: StepProps) {
   const [lessonPlans, setLessonPlans] = useState<LessonPlan[]>(
@@ -57,6 +58,22 @@ export function Step6LessonPlans({ data, onNext, onUpdate }: StepProps) {
           <p className="text-sm text-gray-600 mb-4">
             총 {totalHours}차시를 한 번에 생성합니다.
           </p>
+          <QnaSection
+            quizzes={[
+              {
+                question: "학교자율시간 운영 방식에는 어떤 유형이 있나요?",
+                answer: "지속형(매주 시수 활용), 집중형(학기 중 특정 기간 시수 집중 활용), 혼합형(지속형+집중형 혼합)이 있습니다. 학교 여건과 활동/과목 특성에 따라 적절한 방식을 선택할 수 있습니다."
+              },
+              {
+                question: "차시별 교수·학습 계획 작성 시 어떤 점을 고려해야 하나요?",
+                answer: "학습 내용을 실생활 맥락 속에서 이해하고 적용하는 기회를 제공해야 합니다. 학생이 핵심 내용을 내면화하여 역량을 함양할 수 있도록 구성하고, 학생의 삶에 의미 있는 학습 경험이 되도록 합니다."
+              },
+              {
+                question: "2개 이상의 활동이나 과목을 개설할 때 최소 운영 차시는?",
+                answer: "2개 이상의 활동이나 과목 개설 운영 시 '활동/과목'별 최소 14차시 이상 운영해야 합니다. 예를 들어 29시간을 운영할 경우 1활동(15시간)+1활동(14시간)으로 편성 가능하지만, 1과목(20시간)+1활동(9시간)은 활동이 14시간 미만이므로 불가합니다."
+              }
+            ]}
+          />
           <Button
             onClick={handleGenerate}
             disabled={isGenerating}

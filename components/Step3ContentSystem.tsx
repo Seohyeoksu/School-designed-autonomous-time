@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StepProps, ContentSet } from "@/types";
 import { Loader2 } from "lucide-react";
+import { QnaSection } from "@/components/ui/qna-tooltip";
 
 export function Step3ContentSystem({ data, onNext, onUpdate }: StepProps) {
   const [contentSets, setContentSets] = useState<ContentSet[]>(
@@ -54,6 +55,22 @@ export function Step3ContentSystem({ data, onNext, onUpdate }: StepProps) {
           <p className="text-sm text-gray-600 mb-4">
             영역명, 핵심 아이디어, 내용 요소를 4세트 생성합니다.
           </p>
+          <QnaSection
+            quizzes={[
+              {
+                question: "내용체계표는 어떤 요소로 구성되나요?",
+                answer: "내용체계표는 영역, 핵심 아이디어, 내용 요소(지식·이해, 과정·기능, 가치·태도)로 구성됩니다. 영역은 활동/과목의 학습 내용을 구성하는 일차 조직자이고, 핵심 아이디어는 영역을 아우르면서 일반화할 수 있는 내용입니다."
+              },
+              {
+                question: "핵심 아이디어란 무엇인가요?",
+                answer: "핵심 아이디어는 영역을 아우르면서 해당 영역의 학습을 통해 일반화할 수 있는 내용을 핵심적으로 진술한 것입니다. 해당 영역 학습에 초점을 부여하여 깊이 있는 학습을 가능하게 하는 토대가 됩니다."
+              },
+              {
+                question: "지식·이해, 과정·기능, 가치·태도는 각각 어떻게 진술하나요?",
+                answer: "지식·이해는 활동/과목을 통해 알고 이해해야 할 내용을 명사형으로 제시합니다. 과정·기능은 사고 및 탐구 과정을 행동동사로 제시합니다. 가치·태도는 기를 수 있는 고유한 가치 및 태도를 학년(군)별 수준이 드러나도록 제시합니다."
+              }
+            ]}
+          />
           <Button
             onClick={handleGenerate}
             disabled={isGenerating}

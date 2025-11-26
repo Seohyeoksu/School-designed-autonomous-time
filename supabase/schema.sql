@@ -1,3 +1,56 @@
+-- Enable pgvector extension for vector similarity search
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Create documents table for RAG (학교자율시간 문서)
+CREATE TABLE IF NOT EXISTS documents (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  content TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}',
+  embedding vector(768),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Create index for vector similarity search
+CREATE INDEX IF NOT EXISTS idx_documents_embedding ON documents
+  USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+
+-- Create index on metadata for filtering
+CREATE INDEX IF NOT EXISTS idx_documents_metadata ON documents USING gin (metadata);
+
+-- Enable Row Level Security (RLS) for documents
+ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
+
+-- Allow public read access to documents
+CREATE POLICY "Anyone can read documents" ON documents
+  FOR SELECT USING (true);
+
+-- Create function for vector similarity search
+CREATE OR REPLACE FUNCTION match_documents(
+  query_embedding vector(768),
+  match_count INT DEFAULT 10
+)
+RETURNS TABLE (
+  id UUID,
+  content TEXT,
+  metadata JSONB,
+  similarity FLOAT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    documents.id,
+    documents.content,
+    documents.metadata,
+    1 - (documents.embedding <=> query_embedding) AS similarity
+  FROM documents
+  WHERE documents.embedding IS NOT NULL
+  ORDER BY documents.embedding <=> query_embedding
+  LIMIT match_count;
+END;
+$$;
+
 -- Create projects table
 CREATE TABLE IF NOT EXISTS projects (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

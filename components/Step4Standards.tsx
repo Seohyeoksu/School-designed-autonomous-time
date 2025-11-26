@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StepProps, Standard } from "@/types";
 import { Loader2 } from "lucide-react";
+import { QnaSection } from "@/components/ui/qna-tooltip";
 
 export function Step4Standards({ data, onNext, onUpdate }: StepProps) {
   const [standards, setStandards] = useState<Standard[]>(data.standards || []);
@@ -51,6 +52,22 @@ export function Step4Standards({ data, onNext, onUpdate }: StepProps) {
           <p className="text-sm text-gray-600 mb-4">
             내용체계에 맞는 성취기준을 생성합니다.
           </p>
+          <QnaSection
+            quizzes={[
+              {
+                question: "성취기준이란 무엇인가요?",
+                answer: "성취기준은 학생이 교과를 통해 배워야 할 내용과 이를 통해 수업 후 할 수 있거나 할 수 있기를 기대하는 능력을 결합하여 나타낸 기준입니다. 교수·학습 및 평가의 실질적인 근거가 됩니다."
+              },
+              {
+                question: "성취기준 코드는 어떻게 작성하나요?",
+                answer: "성취기준 코드는 [학년(3~6)+교과명 앞글자+활동/과목명 약어+영역번호-성취기준번호] 형식으로 작성합니다. 예: [3사미디어01-02]는 3학년, 사회 교과, 미디어 활동, 01영역의 02번 성취기준을 의미합니다."
+              },
+              {
+                question: "성취기준 재구조화와 개발의 차이는 무엇인가요?",
+                answer: "성취기준 재구조화는 기존 교과 성취기준을 통합하거나 내용 요소를 수정·변형하는 것입니다. 성취기준 개발은 교과 성취기준과 중복되지 않도록 새로운 성취기준을 만드는 것입니다. 학교자율시간은 교과 외 새로운 내용이므로 주로 개발 방식을 활용합니다."
+              }
+            ]}
+          />
           <Button
             onClick={handleGenerate}
             disabled={isGenerating}
