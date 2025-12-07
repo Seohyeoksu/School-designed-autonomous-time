@@ -17,6 +17,11 @@ const initialData: ProjectData = {
   requirements: '',
   total_hours: 34,
   semester: [],
+  school_context: {
+    student_count: undefined,
+    region_type: '',
+    class_size: undefined,
+  },
 };
 
 export const useStore = create<StoreState>((set) => ({

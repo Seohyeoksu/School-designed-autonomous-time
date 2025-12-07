@@ -112,13 +112,21 @@ export function ChatInterface() {
         body: JSON.stringify({ question: input }),
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
+      console.log('Chat API response:', data);
+
+      // 응답 검증
+      const answerText = data.answer || '죄송합니다. 응답을 처리하는 중 문제가 발생했습니다.';
 
       const assistantMessage: Message = {
         id: `assistant-${messageIdCounter}`,
         role: 'assistant',
-        content: data.answer,
-        sources: data.sources,
+        content: answerText,
+        sources: data.sources || [],
         timestamp: new Date(),
       };
 
@@ -126,11 +134,11 @@ export function ChatInterface() {
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Chat error:', error);
       const errorMessage: Message = {
         id: `error-${messageIdCounter}`,
         role: 'assistant',
-        content: 'Sorry, I encountered an error while processing your question.',
+        content: '죄송합니다. 질문을 처리하는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
         timestamp: new Date(),
       };
 

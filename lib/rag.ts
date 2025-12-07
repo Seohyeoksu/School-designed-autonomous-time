@@ -76,14 +76,16 @@ export async function queryRAG(
     console.log('RAG: Reranked results:', rerankedResults.length);
 
     // 5. 상위 문서 선택 (더 많은 컨텍스트 활용 - Gemini의 큰 컨텍스트 윈도우 활용)
-    const topDocs = rerankedResults.slice(0, 10);
+    const topDocs = rerankedResults.slice(0, 15);  // 10 → 15개로 증가
     console.log('RAG: Using top', topDocs.length, 'documents');
 
     // 6. 컨텍스트 구성 (노이즈 제거된 깨끗한 문서 내용)
     const context = topDocs.length > 0
-      ? topDocs.map((doc, index) =>
-          `[문서 ${index + 1}]\n${cleanDocumentContent(doc.content)}`
-        ).join('\n\n---\n\n')
+      ? topDocs.map((doc, index) => {
+          const cleanedContent = cleanDocumentContent(doc.content);
+          const pageInfo = doc.metadata?.page ? `(페이지 ${doc.metadata.page})` : '';
+          return `[문서 ${index + 1}] ${pageInfo}\n${cleanedContent}`;
+        }).join('\n\n---\n\n')
       : '관련 문서를 찾을 수 없습니다.';
 
     // 7. 응답 생성
@@ -98,6 +100,8 @@ export async function queryRAG(
     }
 
     console.log('RAG: Response generated successfully');
+    console.log('RAG: Answer length:', answer?.length || 0);
+    console.log('RAG: Answer preview:', answer?.substring(0, 100) || 'EMPTY');
 
     return {
       answer,

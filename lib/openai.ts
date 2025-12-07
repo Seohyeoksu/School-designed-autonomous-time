@@ -77,10 +77,31 @@ function buildPrompt(step: number, data: any): string {
   }
 }
 
+function buildSchoolContextPrompt(schoolContext: any): string {
+  if (!schoolContext) return '';
+
+  const parts: string[] = [];
+
+  if (schoolContext.student_count) {
+    parts.push(`학교 규모: 전체 학생수 ${schoolContext.student_count}명`);
+  }
+  if (schoolContext.region_type) {
+    parts.push(`지역특성: ${schoolContext.region_type} 지역`);
+  }
+  if (schoolContext.class_size) {
+    parts.push(`학급당 학생수: ${schoolContext.class_size}명`);
+  }
+
+  if (parts.length === 0) return '';
+
+  return `\n[학교 환경 정보]\n${parts.join('\n')}\n`;
+}
+
 function buildStep1Prompt(data: any): string {
   const grades = data.grades?.join(', ') || '';
   const subjects = data.subjects?.join(', ') || '';
   const semester = data.semester?.join(', ') || '';
+  const schoolContextPrompt = buildSchoolContextPrompt(data.school_context);
 
   return `학교자율시간 활동의 기본 정보를 작성해주세요.
 
@@ -91,6 +112,7 @@ function buildStep1Prompt(data: any): string {
 연계 교과: ${subjects}
 총 차시: ${data.total_hours}차시
 운영 학기: ${semester}
+${schoolContextPrompt}
 
 아래 예시와 같이, 주어진 **활동명**에 종속되어 결과물이 도출되도록
 '필요성(necessity)', '개요(overview)'만 작성해 주세요.
@@ -98,6 +120,12 @@ function buildStep1Prompt(data: any): string {
 지침
 1. 필요성은 예시의 2~3배 분량으로 작성해주세요.
 2. 개요는 괄호( )로 목적·목표·주요 내용을 구분해 주세요
+3. 학교 환경 정보가 제공된 경우, 해당 환경에 맞는 맞춤형 내용을 반영해주세요:
+   - 소규모 학교(100명 이하): 소인수 협력학습, 복식학급 고려
+   - 대규모 학교(500명 이상): 다양한 그룹 활동, 학년간 교류
+   - 농촌/어촌 지역: 지역 자원 활용, 자연환경 체험, 지역 문화 연계
+   - 도시 지역: 도시 시설 활용, 다문화 체험, 디지털 환경 활용
+   - 학급당 학생수: 모둠 구성 및 활동 방식에 반영
 
 [예시]
 필요성:
@@ -125,12 +153,14 @@ function buildStep1Prompt(data: any): string {
 function buildStep3Prompt(data: any): string {
   const grades = data.grades?.join(', ') || '';
   const subjects = data.subjects?.join(', ') || '';
+  const schoolContextPrompt = buildSchoolContextPrompt(data.school_context);
 
   return `활동명: ${data.activity_name} 부합되도록 작성해주세요.
 요구사항: ${data.requirements}을 가장 많이 반영해서 작성하면 좋겠어.
 학교급: ${data.school_type}도 반영해야 한다.
 대상 학년: ${grades}을 고려해서 작성해야 한다.
 연계 교과: ${subjects}
+${schoolContextPrompt}
 
 이전 단계 결과를 참고하여 작성하기
 핵심 아이디어는 IB교육에서 이야기 하는 빅아이디어와 같은 거야. 학생들이 도달 할 수 있는 일반화된 이론이야 예시처럼 문장으로 진술해주세요.
@@ -281,6 +311,7 @@ function buildStep6Prompt(data: any): string {
   const standards = data.standards || [];
   const teachingMethods = data.teaching_methods || [];
   const assessmentPlan = data.assessment_plan || [];
+  const schoolContextPrompt = buildSchoolContextPrompt(data.school_context);
 
   return `아래 정보를 참고하여 **1차시부터 ${totalHours}차시까지** 한 번에 모두 연결된 지도계획을 JSON으로 작성해주세요.
 
@@ -294,7 +325,7 @@ function buildStep6Prompt(data: any): string {
 - 평가계획: ${JSON.stringify(assessmentPlan)}
 - 활동명: ${data.activity_name}
 - 요구사항: ${data.requirements}
-
+${schoolContextPrompt}
 각 차시는 다음 사항을 고려하여 작성:
 1. 대상 학년: ${gradesStr}에 알맞은 수업계획 작성하기
 2. 명확한 학습주제 재미있고 문학적 표현으로 학습주제 설정
@@ -302,6 +333,7 @@ function buildStep6Prompt(data: any): string {
 4. 실제 수업에 필요한 교수학습자료 명시
 5. 이전 차시와의 연계성 고려
 6. 초등학교 3학년 4학년 수준에 맞는 내용으로 작성하여 주세요.
+7. 학교 환경 정보가 제공된 경우, 학급 규모와 지역특성에 맞는 활동을 구성하세요.
 
 (예시)
 학습주제: 질문에도 양심이 있다.

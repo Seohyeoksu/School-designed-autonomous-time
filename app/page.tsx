@@ -91,37 +91,19 @@ export default function Home() {
                 AI 자동 생성
               </span>
             </motion.div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.h1
-                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-2 sm:mb-3 tracking-tight leading-tight cursor-help"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 120,
-                    damping: 20,
-                    delay: 0.1
-                  }}
-                >
-                  학교자율시간 계획서 만들기
-                </motion.h1>
-              </TooltipTrigger>
-              <TooltipContent
-                side="bottom"
-                className="max-w-md sm:max-w-lg md:max-w-2xl p-4 bg-white border-2 border-sky-200 shadow-lg"
-              >
-                <div className="space-y-2">
-                  <h3 className="font-bold text-sky-700 text-sm sm:text-base">학교자율시간이란?</h3>
-                  <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
-                    학교에서 <strong className="text-sky-600">지역과 학교의 여건 및 학생의 필요</strong>에 따라
-                    교과 및 창의적 체험활동의 일부 시수를 확보하여
-                    <strong className="text-sky-600"> 국가 교육과정에 제시되지 않은 새로운 과목</strong>을
-                    자유롭게 개발운영하는 시간입니다.
-                  </p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
+            <motion.h1
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-2 sm:mb-3 tracking-tight leading-tight"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 120,
+                damping: 20,
+                delay: 0.1
+              }}
+            >
+              학교자율시간 계획서 만들기
+            </motion.h1>
             <motion.p
               className="text-base sm:text-lg md:text-xl text-gray-600 font-medium"
               initial={{ opacity: 0, x: -20 }}
@@ -181,8 +163,8 @@ export default function Home() {
             }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
-            <span className="text-xs sm:text-sm text-gray-500">
-              제작: 경상북도교육청 인공지능연구소(GAI LAB) · 교사 서혁수
+            <span className="text-base sm:text-lg text-gray-500">
+              제작: 경상북도교육청 유초등교육과
             </span>
           </motion.div>
         </motion.footer>

@@ -12,8 +12,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { StepProps } from "@/types";
+import { StepProps, SchoolContext } from "@/types";
 import { Loader2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { QnaSection } from "@/components/ui/qna-tooltip";
 
 const ELEMENTARY_GRADES = ["3학년", "4학년", "5학년", "6학년"];
@@ -48,10 +49,25 @@ const MIDDLE_SUBJECTS = [
   "환경과 녹생성장",
 ];
 
+const REGION_TYPES = ['도시', '농촌', '어촌'] as const;
+
 export function Step1BasicInfo({ data, onNext, onUpdate }: StepProps) {
   const [formData, setFormData] = useState(data);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const [showSchoolContext, setShowSchoolContext] = useState(
+    !!(data.school_context?.student_count || data.school_context?.region_type || data.school_context?.class_size)
+  );
+
+  const updateSchoolContext = (field: keyof SchoolContext, value: any) => {
+    setFormData({
+      ...formData,
+      school_context: {
+        ...formData.school_context,
+        [field]: value,
+      },
+    });
+  };
 
   const grades =
     formData.school_type === "초등학교"
@@ -179,30 +195,7 @@ export function Step1BasicInfo({ data, onNext, onUpdate }: StepProps) {
 
           {/* 운영 학기 */}
           <div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Label className="cursor-help inline-block">운영 학기</Label>
-              </TooltipTrigger>
-              <TooltipContent
-                side="right"
-                className="max-w-md sm:max-w-lg md:max-w-2xl p-4 bg-white border-2 border-sky-200 shadow-lg"
-              >
-                <div className="space-y-2">
-                  <h3 className="font-bold text-sky-700 text-sm sm:text-base">⚠️ 학기 단위 운영 원칙 (분산 운영 불가)</h3>
-                  <ul className="text-xs sm:text-sm text-gray-700 leading-relaxed space-y-1.5 list-disc list-inside">
-                    <li>
-                      <strong className="text-red-600">학교자율시간은 학기 단위 운영을 원칙</strong>으로 하므로 학기 내 1주의 수업 시간을 확보하여 운영해야 함
-                    </li>
-                    <li>
-                      운영 시수(예: 29시간)는 <strong className="text-red-600">1개 학기에 편성하여 운영</strong>해야 함
-                    </li>
-                    <li>
-                      <strong className="text-red-600">1학기와 2학기로 분산 운영 불가</strong>
-                    </li>
-                  </ul>
-                </div>
-              </TooltipContent>
-            </Tooltip>
+            <Label>운영 학기</Label>
             <div className="flex gap-4 mt-2">
               {["1학기", "2학기"].map((sem) => (
                 <Button
@@ -218,39 +211,7 @@ export function Step1BasicInfo({ data, onNext, onUpdate }: StepProps) {
 
           {/* 총 차시 */}
           <div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Label className="cursor-help inline-block">총 차시</Label>
-              </TooltipTrigger>
-              <TooltipContent
-                side="right"
-                className="max-w-md sm:max-w-lg md:max-w-2xl p-4 bg-white border-2 border-sky-200 shadow-lg"
-              >
-                <div className="space-y-2">
-                  <h3 className="font-bold text-sky-700 text-sm sm:text-base">📋 학교자율시간 시수 확보 기준</h3>
-                  <ul className="text-xs sm:text-sm text-gray-700 leading-relaxed space-y-1.5 list-disc list-inside">
-                    <li>
-                      <strong className="text-sky-600">연간 34주 기준</strong>으로 교과별 및 창의적 체험활동 수업 시간 수의 학기별 1주의 수업 시간을 확보하여 학기 단위로 운영
-                    </li>
-                    <li>
-                      실제 교육과정을 운영하는 시간을 기준으로 각 학년에서 편성한 <strong className="text-sky-600">&apos;총 수업 시간 수&apos;</strong>에 따라 편성
-                    </li>
-                    <li>
-                      운영 시수의 순증도 가능하며, 시수 확보 과정에서 <strong className="text-sky-600">특정 과목이나 영역의 시수가 지나치게 줄지 않도록 유의</strong>
-                    </li>
-                    <li>
-                      학교의 여건과 교과 특성을 고려하여 시수 감축 운영이 가능한 교과(군) 및 창의적 체험활동에서 확보
-                    </li>
-                    <li>
-                      교육과정 편성 운영 기준에 따라 <strong className="text-sky-600">교과(군)별 및 창의적 체험활동의 20% 범위 내</strong> 시수 증감 기준 준수
-                    </li>
-                    <li>
-                      교과(군)에서 일부 시수를 감축하여 학교자율시간으로 편성할 때 감축된 수업 시수로 <strong className="text-sky-600">해당 교과의 교육과정 성취기준을 모두 이수하는 것이 가능한지 점검</strong>
-                    </li>
-                  </ul>
-                </div>
-              </TooltipContent>
-            </Tooltip>
+            <Label>총 차시</Label>
             <Input
               type="number"
               value={formData.total_hours}
@@ -291,6 +252,85 @@ export function Step1BasicInfo({ data, onNext, onUpdate }: StepProps) {
               rows={4}
               className="mt-2"
             />
+          </div>
+
+          {/* 학교 환경 정보 (선택사항) */}
+          <div className="border rounded-lg p-4 bg-gray-50">
+            <div className="flex items-center space-x-2 mb-4">
+              <Checkbox
+                id="showSchoolContext"
+                checked={showSchoolContext}
+                onCheckedChange={(checked) => {
+                  setShowSchoolContext(!!checked);
+                  if (!checked) {
+                    setFormData({
+                      ...formData,
+                      school_context: {
+                        student_count: undefined,
+                        region_type: '',
+                        class_size: undefined,
+                      },
+                    });
+                  }
+                }}
+              />
+              <Label htmlFor="showSchoolContext" className="cursor-pointer font-medium">
+                학교 환경 정보 입력 (선택사항)
+              </Label>
+            </div>
+
+            {showSchoolContext && (
+              <div className="space-y-4 pl-6">
+                {/* 학교 규모 (학생수) */}
+                <div>
+                  <Label className="text-sm">학교 규모 (전체 학생수)</Label>
+                  <Input
+                    type="number"
+                    value={formData.school_context?.student_count || ''}
+                    onChange={(e) =>
+                      updateSchoolContext('student_count', e.target.value ? parseInt(e.target.value) : undefined)
+                    }
+                    placeholder="예: 300"
+                    min={1}
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* 지역특성 */}
+                <div>
+                  <Label className="text-sm">지역특성</Label>
+                  <div className="flex gap-2 mt-1">
+                    {REGION_TYPES.map((region) => (
+                      <Button
+                        key={region}
+                        type="button"
+                        variant={formData.school_context?.region_type === region ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => updateSchoolContext('region_type', region)}
+                      >
+                        {region}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 학급당 학생수 */}
+                <div>
+                  <Label className="text-sm">학급당 학생수</Label>
+                  <Input
+                    type="number"
+                    value={formData.school_context?.class_size || ''}
+                    onChange={(e) =>
+                      updateSchoolContext('class_size', e.target.value ? parseInt(e.target.value) : undefined)
+                    }
+                    placeholder="예: 25"
+                    min={1}
+                    max={50}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Q&A 섹션 */}

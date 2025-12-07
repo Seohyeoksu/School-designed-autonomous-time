@@ -69,22 +69,26 @@ export async function classifyQuestion(question: string): Promise<'document' | '
 // 문서 기반 응답 생성
 export async function generateResponse(question: string, context: string): Promise<string> {
   try {
-    const prompt = `${SYSTEM_INSTRUCTION}
+    const prompt = `당신은 2022 개정 교육과정의 '학교자율시간' 전문가입니다. 경상북도교육청의 공식 자료를 기반으로 정확한 정보를 제공합니다.
 
-## 참고 문서 (학교자율시간 관련 자료)
+아래는 경상북도교육청에서 제공하는 '학교자율시간 톺아보기' 공식 문서입니다:
+
+===== 참고 문서 시작 =====
 ${context}
+===== 참고 문서 끝 =====
 
-## 사용자 질문
+[사용자 질문]
 ${question}
 
-## 지시사항
-위 참고 문서를 꼼꼼히 읽고, 질문과 관련된 정보를 종합하여 답변해주세요.
-
-답변 작성 요령:
-1. 참고 문서에서 질문과 관련된 핵심 내용을 찾아 정리하세요.
-2. 시수, 차시, 비율 등 구체적인 숫자가 있으면 정확히 포함하세요.
-3. 여러 문서에 관련 정보가 있으면 종합하여 완성된 답변을 작성하세요.
-4. 답변은 친절하고 이해하기 쉽게 작성하세요.
+[답변 지침]
+1. 반드시 위 참고 문서의 내용만을 기반으로 답변하세요.
+2. 문서에 있는 구체적인 숫자(시수, 차시, 비율, 학년 등)를 정확하게 인용하세요.
+3. 문서에 표가 있으면 그 내용을 활용하여 설명하세요.
+4. 문서에 없는 내용은 "제공된 자료에서 확인할 수 없습니다"라고 명시하세요.
+5. 답변 형식:
+   - 마크다운 기호(**, *, #) 사용하지 마세요
+   - 목록은 "- " 또는 "1. 2. 3."으로 표시
+   - 간결하고 명확하게 작성
 
 답변:`;
 
@@ -92,12 +96,23 @@ ${question}
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
-        temperature: 0.3,
+        temperature: 0.1,  // 더 낮은 온도로 정확도 향상
         maxOutputTokens: 2048,
       },
     });
 
-    return response.text || '응답을 생성할 수 없습니다.';
+    // response.text 속성 접근 방식 확인
+    const responseText = response.text;
+    console.log('Gemini response type:', typeof responseText);
+    console.log('Gemini response length:', responseText?.length || 0);
+
+    if (!responseText || responseText.trim() === '') {
+      console.error('Empty response from Gemini API');
+      console.log('Full response object:', JSON.stringify(response, null, 2));
+      return '죄송합니다. 응답 생성에 실패했습니다. 잠시 후 다시 시도해주세요.';
+    }
+
+    return responseText;
   } catch (error) {
     console.error('Response generation error:', error);
     throw error;
@@ -134,7 +149,18 @@ ${question}
       },
     });
 
-    return response.text || '응답을 생성할 수 없습니다.';
+    // response.text 속성 접근 방식 확인
+    const responseText = response.text;
+    console.log('Gemini creative response type:', typeof responseText);
+    console.log('Gemini creative response length:', responseText?.length || 0);
+
+    if (!responseText || responseText.trim() === '') {
+      console.error('Empty creative response from Gemini API');
+      console.log('Full response object:', JSON.stringify(response, null, 2));
+      return '죄송합니다. 응답 생성에 실패했습니다. 잠시 후 다시 시도해주세요.';
+    }
+
+    return responseText;
   } catch (error) {
     console.error('Creative response generation error:', error);
     throw error;

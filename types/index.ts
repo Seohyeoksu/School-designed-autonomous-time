@@ -1,3 +1,9 @@
+export interface SchoolContext {
+  student_count?: number;        // 학교 규모 (학생수)
+  region_type?: '도시' | '농촌' | '어촌' | '';  // 지역특성
+  class_size?: number;           // 학급당 학생수
+}
+
 export interface BasicInfo {
   school_type: string;
   grades: string[];
@@ -9,6 +15,7 @@ export interface BasicInfo {
   semester: string[];
   necessity?: string;
   overview?: string;
+  school_context?: SchoolContext;  // 선택적 학교 환경 정보
 }
 
 export interface ContentElement {
