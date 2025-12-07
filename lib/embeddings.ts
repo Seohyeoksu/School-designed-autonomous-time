@@ -154,13 +154,14 @@ export async function searchSimilarDocuments(
   }
 }
 
-// 키워드 기반 검색 (BM25 스타일 - 하이브리드 검색용)
+// Contextual BM25 검색 (Anthropic's Contextual Retrieval 적용)
+// 컨텍스트화된 내용(metadata.contextualized_content)에서도 검색하여 정확도 향상
 export async function keywordSearch(
   query: string,
   matchCount: number = 10
 ): Promise<Array<{ content: string; similarity: number; metadata: any }>> {
   try {
-    console.log('🔑 Keyword search for:', query);
+    console.log('🔑 Contextual BM25 search for:', query);
 
     const supabaseAdmin = getSupabaseAdmin();
 
@@ -174,35 +175,86 @@ export async function keywordSearch(
 
     let allResults: Array<{ id: string; content: string; metadata: any }> = [];
 
-    // 각 키워드로 검색
+    // 각 키워드로 검색 (원본 content + 컨텍스트화된 content 모두 검색)
     for (const keyword of keywords.slice(0, 5)) {
-      const { data, error } = await supabaseAdmin
+      // 1. 원본 content에서 검색
+      const { data: contentData, error: contentError } = await supabaseAdmin
         .from('documents')
         .select('id, content, metadata')
         .ilike('content', `%${keyword}%`)
         .limit(10);
 
-      if (!error && data) {
-        allResults = [...allResults, ...data];
+      if (!contentError && contentData) {
+        allResults = [...allResults, ...contentData];
+      }
+
+      // 2. 컨텍스트화된 content에서도 검색 (metadata->contextualized_content)
+      // Supabase에서 JSONB 필드 내부 검색
+      const { data: contextData, error: contextError } = await supabaseAdmin
+        .from('documents')
+        .select('id, content, metadata')
+        .filter('metadata->>contextualized_content', 'ilike', `%${keyword}%`)
+        .limit(10);
+
+      if (!contextError && contextData) {
+        allResults = [...allResults, ...contextData];
+      }
+
+      // 3. 맥락(context)에서도 검색
+      const { data: metaContextData, error: metaContextError } = await supabaseAdmin
+        .from('documents')
+        .select('id, content, metadata')
+        .filter('metadata->>context', 'ilike', `%${keyword}%`)
+        .limit(10);
+
+      if (!metaContextError && metaContextData) {
+        allResults = [...allResults, ...metaContextData];
       }
     }
 
-    // 중복 제거 및 출현 빈도 기반 점수 계산
+    // 중복 제거 및 BM25 스타일 점수 계산
     const docScores = new Map<string, { doc: any; score: number }>();
 
     for (const doc of allResults) {
       const docId = doc.id;
+
+      // 검색 대상 텍스트 (원본 + 컨텍스트)
+      const searchableText = [
+        doc.content,
+        doc.metadata?.context || '',
+        doc.metadata?.contextualized_content || ''
+      ].join(' ').toLowerCase();
+
       if (docScores.has(docId)) {
-        // 여러 키워드에 매칭되면 점수 증가
+        // 여러 키워드/소스에 매칭되면 점수 증가
         const existing = docScores.get(docId)!;
         existing.score += 0.1;
       } else {
-        // 문서 내 키워드 출현 횟수로 점수 계산
+        // BM25 스타일 점수 계산
         let score = 0.5;
+        const docLength = searchableText.length;
+        const avgDocLength = 1500; // 평균 문서 길이 추정
+
         for (const keyword of keywords) {
-          const matches = (doc.content.match(new RegExp(keyword, 'gi')) || []).length;
-          score += Math.min(matches * 0.05, 0.3); // 최대 0.3 추가
+          const regex = new RegExp(keyword, 'gi');
+          const matches = (searchableText.match(regex) || []).length;
+
+          if (matches > 0) {
+            // BM25 공식 간소화: TF * IDF 효과
+            const tf = matches / (matches + 1.2 * (1 - 0.75 + 0.75 * (docLength / avgDocLength)));
+            const idf = Math.log(1 + (127 - matches + 0.5) / (matches + 0.5)); // 127 = 총 문서 수
+            score += tf * idf * 0.1;
+          }
         }
+
+        // 컨텍스트에서 매칭되면 추가 보너스
+        if (doc.metadata?.context) {
+          const contextMatches = keywords.filter(k =>
+            doc.metadata.context.toLowerCase().includes(k.toLowerCase())
+          ).length;
+          score += contextMatches * 0.05;
+        }
+
         docScores.set(docId, { doc, score: Math.min(score, 1) });
       }
     }
@@ -216,7 +268,7 @@ export async function keywordSearch(
         similarity: score
       }));
 
-    console.log('🔑 Keyword search results:', sortedResults.length);
+    console.log('🔑 Contextual BM25 results:', sortedResults.length);
     return sortedResults;
   } catch (error) {
     console.error('💥 Error in keywordSearch:', error);
