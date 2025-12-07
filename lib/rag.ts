@@ -79,12 +79,19 @@ export async function queryRAG(
     const topDocs = rerankedResults.slice(0, 15);  // 10 → 15개로 증가
     console.log('RAG: Using top', topDocs.length, 'documents');
 
-    // 6. 컨텍스트 구성 (노이즈 제거된 깨끗한 문서 내용)
+    // 6. 컨텍스트 구성 (Contextual Retrieval 활용)
+    // 메타데이터에 context가 있으면 사용, 없으면 기존 방식
     const context = topDocs.length > 0
       ? topDocs.map((doc, index) => {
           const cleanedContent = cleanDocumentContent(doc.content);
           const pageInfo = doc.metadata?.page ? `(페이지 ${doc.metadata.page})` : '';
-          return `[문서 ${index + 1}] ${pageInfo}\n${cleanedContent}`;
+
+          // Contextual Retrieval: 메타데이터에 저장된 컨텍스트 활용
+          const chunkContext = doc.metadata?.context
+            ? `[맥락] ${doc.metadata.context}\n\n`
+            : '';
+
+          return `[문서 ${index + 1}] ${pageInfo}\n${chunkContext}${cleanedContent}`;
         }).join('\n\n---\n\n')
       : '관련 문서를 찾을 수 없습니다.';
 

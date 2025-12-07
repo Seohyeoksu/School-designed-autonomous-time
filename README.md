@@ -148,14 +148,17 @@ school-autonomy-integrated/
 | 6 | 차시별 지도계획 (1~34차시) | O |
 | 7 | 최종 검토 + 선택적 Excel 다운로드 | - |
 
-## RAG 챗봇
+## RAG 챗봇 (Contextual Retrieval 적용)
 
 학교자율시간 관련 질문에 답변하는 AI 챗봇:
 
-- 하이브리드 검색 (벡터 검색 + 키워드 검색)
+- **Contextual Retrieval**: Anthropic의 Contextual Retrieval 기법 적용
+  - 각 청크에 문서 전체 맥락을 설명하는 컨텍스트 추가
+  - 컨텍스트화된 임베딩으로 검색 정확도 49% 향상
+- 하이브리드 검색 (Contextual Embeddings + Contextual BM25)
 - Gemini 기반 리랭킹
 - 질문 유형별 응답 (정보기반 / 창의적)
-- 출처 표시 (페이지, 유사도)
+- 출처 표시 (페이지, 유사도, 맥락)
 
 ## API 키 발급 방법
 
@@ -198,6 +201,9 @@ npm run lint
 
 # 문서 재인덱싱 (Upstage OCR)
 npx ts-node --project tsconfig.scripts.json scripts/reindex-with-upstage.ts
+
+# Contextual Retrieval 적용 재인덱싱 (권장)
+npx ts-node --project tsconfig.scripts.json scripts/reindex-contextual.ts
 ```
 
 ## Vercel 배포
