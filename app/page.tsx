@@ -163,7 +163,7 @@ export default function Home() {
             }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
-            <span className="text-base sm:text-lg text-gray-500">
+            <span className="text-lg sm:text-xl md:text-2xl font-medium text-gray-600">
               제작: 경상북도교육청 유초등교육과
             </span>
           </motion.div>

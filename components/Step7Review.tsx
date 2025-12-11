@@ -11,6 +11,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { StepProps } from "@/types";
 import { Download, RefreshCw, Edit2, Save } from "lucide-react";
 
+// "1차시" -> "1", "2" -> "2" 형태로 정리
+function formatLessonNumber(lessonNumber: string | number): string {
+  if (lessonNumber === null || lessonNumber === undefined) return "";
+  // 숫자인 경우 문자열로 변환
+  const str = String(lessonNumber);
+  // "차시" 제거하고 숫자만 반환
+  return str.replace(/차시/g, "").trim();
+}
+
 export function Step7Review({ data, onUpdate }: StepProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(data);
@@ -331,7 +340,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                   {isEditing ? (
                     <>
                       <div className="mb-2">
-                        <Label>{lesson.lesson_number}차시 - 학습주제</Label>
+                        <Label>{formatLessonNumber(lesson.lesson_number)}차시 - 학습주제</Label>
                         <Input
                           value={lesson.topic}
                           onChange={(e) => {
@@ -367,7 +376,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                     </>
                   ) : (
                     <>
-                      <p className="font-semibold">{lesson.lesson_number}차시: {lesson.topic}</p>
+                      <p className="font-semibold">{formatLessonNumber(lesson.lesson_number)}차시: {lesson.topic}</p>
                       <p className="text-sm mt-1">{lesson.content}</p>
                       <p className="text-sm text-gray-600 mt-1">자료: {lesson.materials}</p>
                     </>

@@ -1,4 +1,4 @@
-import { searchSimilarDocuments, keywordSearch } from './embeddings';
+import { hybridParallelSearch } from './embeddings';
 import { generateResponse, generateCreativeResponse, classifyQuestion, rerankDocuments } from './gemini';
 
 // 문서 내용에서 노이즈 제거 (URL, 타임스탬프, 페이지 번호 등)
@@ -50,37 +50,47 @@ export async function queryRAG(
   matchCount: number = 15
 ): Promise<RAGResponse> {
   try {
-    console.log('RAG: Processing question:', question);
+    console.log('');
+    console.log('╔════════════════════════════════════════════════════════════╗');
+    console.log('║           RAG Pipeline - Hybrid Parallel Search            ║');
+    console.log('╚════════════════════════════════════════════════════════════╝');
+    console.log('📝 Question:', question);
 
-    // 1. 질문 유형 분류
-    const questionType = await classifyQuestion(question);
-    console.log('RAG: Question type:', questionType);
+    // 1. 질문 유형 분류 (병렬 실행 가능하도록 분리)
+    const classifyPromise = classifyQuestion(question);
 
-    // 2. 하이브리드 검색 (벡터 검색 + 키워드 검색)
-    console.log('RAG: Starting hybrid search...');
+    // 2. 하이브리드 병렬 검색 실행
+    // Track A (벡터) + Track B (키워드)를 동시에 실행
+    console.log('');
+    console.log('🔄 Starting HYBRID PARALLEL SEARCH...');
+    console.log('   ├─ Track A: Vector Search (semantic meaning)');
+    console.log('   └─ Track B: Keyword Search (synonym expansion)');
+    console.log('');
 
-    // 벡터 검색 (semantic search)
-    const vectorResults = await searchSimilarDocuments(question, matchCount * 2);
-    console.log('RAG: Vector search results:', vectorResults.length);
+    const [questionType, hybridResults] = await Promise.all([
+      classifyPromise,
+      hybridParallelSearch(question, matchCount * 2)
+    ]);
 
-    // 키워드 검색 (BM25 스타일)
-    const keywordResults = await keywordSearch(question, matchCount);
-    console.log('RAG: Keyword search results:', keywordResults.length);
+    console.log('');
+    console.log('📊 Question type:', questionType);
+    console.log('📊 Hybrid search results:', hybridResults.length);
 
-    // 3. 결과 병합 및 중복 제거
-    const mergedResults = mergeSearchResults(vectorResults, keywordResults);
-    console.log('RAG: Merged results:', mergedResults.length);
+    // 3. 리랭킹 (질문과 관련성 재평가)
+    console.log('🔄 Re-ranking results...');
+    const docsForRerank = hybridResults.map(doc => ({
+      content: doc.content,
+      similarity: doc.similarity,
+      metadata: doc.metadata
+    }));
+    const rerankedResults = await rerankDocuments(question, docsForRerank);
+    console.log('✅ Reranked results:', rerankedResults.length);
 
-    // 4. 리랭킹 (질문과 관련성 재평가)
-    const rerankedResults = await rerankDocuments(question, mergedResults);
-    console.log('RAG: Reranked results:', rerankedResults.length);
+    // 4. 상위 문서 선택
+    const topDocs = rerankedResults.slice(0, 15);
+    console.log('📄 Using top', topDocs.length, 'documents');
 
-    // 5. 상위 문서 선택 (더 많은 컨텍스트 활용 - Gemini의 큰 컨텍스트 윈도우 활용)
-    const topDocs = rerankedResults.slice(0, 15);  // 10 → 15개로 증가
-    console.log('RAG: Using top', topDocs.length, 'documents');
-
-    // 6. 컨텍스트 구성 (Contextual Retrieval 활용)
-    // 메타데이터에 context가 있으면 사용, 없으면 기존 방식
+    // 5. 컨텍스트 구성 (Contextual Retrieval 활용)
     const context = topDocs.length > 0
       ? topDocs.map((doc, index) => {
           const cleanedContent = cleanDocumentContent(doc.content);
@@ -95,20 +105,24 @@ export async function queryRAG(
         }).join('\n\n---\n\n')
       : '관련 문서를 찾을 수 없습니다.';
 
-    // 7. 응답 생성
+    // 6. 응답 생성
     let answer: string;
 
     if (questionType === 'creative') {
-      console.log('RAG: Generating creative response');
+      console.log('🎨 Generating creative response...');
       answer = await generateCreativeResponse(question, context);
     } else {
-      console.log('RAG: Generating document-based response');
+      console.log('📚 Generating document-based response...');
       answer = await generateResponse(question, context);
     }
 
-    console.log('RAG: Response generated successfully');
-    console.log('RAG: Answer length:', answer?.length || 0);
-    console.log('RAG: Answer preview:', answer?.substring(0, 100) || 'EMPTY');
+    console.log('');
+    console.log('╔════════════════════════════════════════════════════════════╗');
+    console.log('║                    RAG Pipeline Complete                    ║');
+    console.log('╚════════════════════════════════════════════════════════════╝');
+    console.log('✅ Answer length:', answer?.length || 0);
+    console.log('✅ Sources:', topDocs.length);
+    console.log('');
 
     return {
       answer,
@@ -120,7 +134,9 @@ export async function queryRAG(
       responseType: questionType
     };
   } catch (error) {
-    console.error('Error in queryRAG:', error);
+    console.error('');
+    console.error('💥 Error in queryRAG:', error);
+    console.error('');
 
     // 에러 시 기본 응답 반환
     return {
@@ -129,48 +145,4 @@ export async function queryRAG(
       responseType: 'document'
     };
   }
-}
-
-// 벡터 검색과 키워드 검색 결과 병합
-function mergeSearchResults(
-  vectorResults: Array<{ content: string; similarity: number; metadata: any }>,
-  keywordResults: Array<{ content: string; similarity: number; metadata: any }>
-): Array<{ content: string; similarity: number; metadata: any }> {
-  const seen = new Set<string>();
-  const merged: Array<{ content: string; similarity: number; metadata: any }> = [];
-
-  // 벡터 검색 결과 (가중치 0.7)
-  for (const doc of vectorResults) {
-    const key = doc.content.substring(0, 100);
-    if (!seen.has(key)) {
-      seen.add(key);
-      merged.push({
-        ...doc,
-        similarity: doc.similarity * 0.7
-      });
-    }
-  }
-
-  // 키워드 검색 결과 (가중치 0.3)
-  for (const doc of keywordResults) {
-    const key = doc.content.substring(0, 100);
-    if (!seen.has(key)) {
-      seen.add(key);
-      merged.push({
-        ...doc,
-        similarity: doc.similarity * 0.3
-      });
-    } else {
-      // 이미 있으면 점수 합산
-      const existing = merged.find(m => m.content.substring(0, 100) === key);
-      if (existing) {
-        existing.similarity += doc.similarity * 0.3;
-      }
-    }
-  }
-
-  // 점수순 정렬
-  merged.sort((a, b) => b.similarity - a.similarity);
-
-  return merged;
 }
