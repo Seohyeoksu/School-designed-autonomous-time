@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { StepTitle } from "@/components/ui/step-title";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StepProps, LessonPlan } from "@/types";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronLeft } from "lucide-react";
 import { QnaSection } from "@/components/ui/qna-tooltip";
 
-export function Step6LessonPlans({ data, onNext, onUpdate }: StepProps) {
+export function Step6LessonPlans({ data, onNext, onPrev, onUpdate }: StepProps) {
   const [lessonPlans, setLessonPlans] = useState<LessonPlan[]>(
     data.lesson_plans || []
   );
@@ -48,11 +49,18 @@ export function Step6LessonPlans({ data, onNext, onUpdate }: StepProps) {
     onNext();
   };
 
+  const handlePrev = () => {
+    if (lessonPlans.length > 0) {
+      onUpdate({ lesson_plans: lessonPlans });
+    }
+    onPrev?.();
+  };
+
   if (!generated) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>6단계: 차시별 지도계획 (총 {totalHours}차시)</CardTitle>
+          <StepTitle step={6} title={`차시별 지도계획 (총 ${totalHours}차시)`} />
         </CardHeader>
         <CardContent>
           <p className="text-sm text-gray-600 mb-4">
@@ -74,14 +82,20 @@ export function Step6LessonPlans({ data, onNext, onUpdate }: StepProps) {
               }
             ]}
           />
-          <Button
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            className="w-full"
-          >
-            {isGenerating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            전체 차시 생성
-          </Button>
+          <div className="flex gap-3">
+            <Button onClick={handlePrev} variant="outline" className="flex-1">
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              이전 단계
+            </Button>
+            <Button
+              onClick={handleGenerate}
+              disabled={isGenerating}
+              className="flex-1"
+            >
+              {isGenerating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              전체 차시 생성
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
@@ -90,7 +104,7 @@ export function Step6LessonPlans({ data, onNext, onUpdate }: StepProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>생성된 차시별 계획 수정</CardTitle>
+        <StepTitle step={6} title="차시별 계획 수정" />
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="0">
@@ -167,9 +181,15 @@ export function Step6LessonPlans({ data, onNext, onUpdate }: StepProps) {
           })}
         </Tabs>
 
-        <Button onClick={handleNext} className="w-full mt-6">
-          차시별 계획 저장 및 다음 단계로
-        </Button>
+        <div className="flex gap-3 mt-6">
+          <Button onClick={handlePrev} variant="outline" className="flex-1">
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            이전 단계
+          </Button>
+          <Button onClick={handleNext} className="flex-1">
+            차시별 계획 저장 및 다음 단계로
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

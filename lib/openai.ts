@@ -2,23 +2,85 @@ import { GoogleGenAI } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-const SYSTEM_PROMPT = `한국의 초등학교 2022 개정 교육과정 전문가입니다.
+// 학년별 수준 가이드라인 생성
+function getGradeLevelGuidance(schoolType: string, grades: string[]): { levelDesc: string; characteristics: string } {
+  const gradeStr = grades?.join(', ') || '';
+
+  if (schoolType === '중학교') {
+    return {
+      levelDesc: `중학교 ${gradeStr} 수준`,
+      characteristics: `
+- 추상적 사고와 비판적 분석 능력을 활용한 학습
+- 자기주도적 탐구와 프로젝트 기반 학습
+- 토론, 발표, 협력적 문제해결 중심 활동
+- 진로 탐색과 연계한 실생활 적용
+- 디지털 리터러시와 정보 활용 능력 강화`
+    };
+  }
+
+  // 초등학교
+  const hasLowerGrades = grades?.some(g => g.includes('3') || g.includes('4'));
+  const hasUpperGrades = grades?.some(g => g.includes('5') || g.includes('6'));
+
+  if (hasLowerGrades && hasUpperGrades) {
+    return {
+      levelDesc: `초등학교 ${gradeStr} 수준`,
+      characteristics: `
+- 구체적 조작 활동에서 점차 추상적 사고로 전환
+- 다양한 체험 중심 활동과 협력 학습
+- 학년 수준에 맞는 차별화된 과제 제시
+- 일상생활과 연계한 실생활 문제해결`
+    };
+  } else if (hasUpperGrades) {
+    return {
+      levelDesc: `초등학교 ${gradeStr} 수준`,
+      characteristics: `
+- 논리적 사고와 추론 능력을 활용한 탐구 학습
+- 프로젝트 및 문제해결 중심 활동
+- 모둠 협력과 토론 활동
+- 자기주도적 학습 태도 형성
+- 중학교 학습과의 연계 고려`
+    };
+  } else {
+    return {
+      levelDesc: `초등학교 ${gradeStr} 수준`,
+      characteristics: `
+- 구체적 조작 활동과 직접 체험 중심 학습
+- 놀이와 게임을 활용한 재미있는 활동
+- 시각적 자료와 다양한 감각을 활용한 학습
+- 짧은 집중 시간을 고려한 활동 구성
+- 쉽고 친근한 언어 사용`
+    };
+  }
+}
+
+function buildSystemPrompt(data: any): string {
+  const schoolType = data.school_type || '초등학교';
+  const grades = data.grades || [];
+  const { levelDesc, characteristics } = getGradeLevelGuidance(schoolType, grades);
+
+  return `한국의 ${schoolType} 2022 개정 교육과정 전문가입니다.
 학교자율시간 계획서를 다음 원칙에 따라 작성합니다:
 
 1. 지도계획에 모든 차시에 학습내용과 학습 주제가 빈틈없이 내용이 꼭 들어가야 합니다.
-2. 학습자 중심의 교육과정 초등학교 3,4학년 수준에 맞는 쉽게 내용을 만들어 주세요.
+2. 학습자 중심의 교육과정 ${levelDesc}에 맞는 내용을 만들어 주세요.
 3. 실생활 연계 및 체험 중심 활동
 4. 교과 간 연계 및 통합적 접근
-5. 초등학교 3학년, 4학년 수준에 맞아야 한다.
+5. ${levelDesc}에 맞아야 한다.
 6. 요구사항을 반영한 맞춤형 교육과정 구성
 7. 교수학습 방법의 다양화
 8. 객관적이고 공정한 평가계획 수립
-9. 초등학교 수준에 맞는 내용 구성`;
+9. ${schoolType} 수준에 맞는 내용 구성
+
+[${levelDesc} 특성]
+${characteristics}`;
+}
 
 export async function generateContent(step: number, data: any): Promise<any> {
   try {
+    const systemPrompt = buildSystemPrompt(data);
     const prompt = buildPrompt(step, data);
-    const fullPrompt = `${SYSTEM_PROMPT}\n\n${prompt}\n\n추가 문장 없이 JSON만 반환`;
+    const fullPrompt = `${systemPrompt}\n\n${prompt}\n\n추가 문장 없이 JSON만 반환`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
@@ -85,8 +147,11 @@ function buildSchoolContextPrompt(schoolContext: any): string {
   if (schoolContext.student_count) {
     parts.push(`학교 규모: 전체 학생수 ${schoolContext.student_count}명`);
   }
-  if (schoolContext.region_type) {
-    parts.push(`지역특성: ${schoolContext.region_type} 지역`);
+  if (schoolContext.region_type && schoolContext.region_type.length > 0) {
+    const regionStr = Array.isArray(schoolContext.region_type)
+      ? schoolContext.region_type.join(', ')
+      : schoolContext.region_type;
+    parts.push(`지역특성: ${regionStr} 지역`);
   }
   if (schoolContext.class_size) {
     parts.push(`학급당 학생수: ${schoolContext.class_size}명`);
@@ -256,8 +321,8 @@ function buildStep5Prompt(data: any): string {
 
   return `이전 단계(성취기준): ${JSON.stringify(standards)}
 
-1.평가요소, 수업평가방법, 평가기준은 예시문을 참고해서 작성해주세요
-2.평가기준은 상,중,하로 나누어서 작성하여 주세요.
+1.평가요소, 수업평가방법, 평가수준은 예시문을 참고해서 작성해주세요
+2.평가수준은 상,중,하로 나누어서 작성하여 주세요.
 3.평가요소는 ~하기 형식으로 만들어 주세요.
 4.다시 강조하지만 예시문 아래 예시문 형식으로 작성하여 주세요
 
@@ -267,7 +332,7 @@ function buildStep5Prompt(data: any): string {
 수업평가방법
  [개념학습/프로젝트]
  - 국가유산의 의미를 이해하게 한 후 기준을 세워 국가유산을 유형별로 알아보고 문화유산의 가치를 파악하는지 평가하기
-평가기준
+평가수준
  - 상:국가유산의 의미와 유형을 정확하게 이해하고 지역의 국가유산 조사를 통해 국가유산의 가치를 설명할 수 있다.
  - 중:국가유산의 의미와 유형을 이해하고 지역의 국가유산 조사를 통해 국가유산의 가치를 설명할 수 있다.
  - 하:주변의 도움을 받아 국가유산의 의미와 유형을 설명할 수 있다.
@@ -282,7 +347,7 @@ function buildStep5Prompt(data: any): string {
 "teaching_methods_text": 문자열 (여러 줄 가능),
 "assessment_plan": 리스트
 아래 예시 형식으로 JSON을 작성해주세요.
-- 평가기준은 '상', '중', '하' 각각을 별도 필드로 기재 (criteria_high, criteria_mid, criteria_low)
+- 평가수준은 '상', '중', '하' 각각을 별도 필드로 기재 (criteria_high, criteria_mid, criteria_low)
 
 JSON 예시:
 {
@@ -293,9 +358,9 @@ JSON 예시:
       "description": "성취기준문장",
       "element": "평가요소",
       "method": "수업평가방법",
-      "criteria_high": "상 수준 평가기준",
-      "criteria_mid": "중 수준 평가기준",
-      "criteria_low": "하 수준 평가기준"
+      "criteria_high": "상 수준 평가수준",
+      "criteria_mid": "중 수준 평가수준",
+      "criteria_low": "하 수준 평가수준"
     },
     ...
   ]
@@ -304,6 +369,7 @@ JSON 예시:
 
 function buildStep6Prompt(data: any): string {
   const totalHours = data.total_hours || 30;
+  const schoolType = data.school_type || '초등학교';
   const gradesStr = data.grades?.join(', ') || '';
   const domain = data.domain || '';
   const keyIdeas = data.key_ideas || [];
@@ -312,6 +378,7 @@ function buildStep6Prompt(data: any): string {
   const teachingMethods = data.teaching_methods || [];
   const assessmentPlan = data.assessment_plan || [];
   const schoolContextPrompt = buildSchoolContextPrompt(data.school_context);
+  const { levelDesc } = getGradeLevelGuidance(schoolType, data.grades || []);
 
   return `아래 정보를 참고하여 **1차시부터 ${totalHours}차시까지** 한 번에 모두 연결된 지도계획을 JSON으로 작성해주세요.
 
@@ -332,7 +399,7 @@ ${schoolContextPrompt}
 3. 구체적이고 학생활동 중심으로 진술하세요. ~~하기 형식으로 해주세요.
 4. 실제 수업에 필요한 교수학습자료 명시
 5. 이전 차시와의 연계성 고려
-6. 초등학교 3학년 4학년 수준에 맞는 내용으로 작성하여 주세요.
+6. ${levelDesc}에 맞는 내용으로 작성하여 주세요.
 7. 학교 환경 정보가 제공된 경우, 학급 규모와 지역특성에 맞는 활동을 구성하세요.
 8. **중요: 학습내용(content)은 반드시 1문장만 작성하세요. 2문장 이상 작성하지 마세요.**
 9. **중요: 학습내용 문장 끝은 반드시 마침표(.)로 끝내세요. 세미콜론(;)을 사용하지 마세요.**

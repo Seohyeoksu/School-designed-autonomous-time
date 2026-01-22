@@ -4,12 +4,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { StepTitle } from "@/components/ui/step-title";
+import { SectionTitle } from "@/components/ui/section-title";
 import { StepProps, AssessmentPlan } from "@/types";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronLeft } from "lucide-react";
 import { QnaSection } from "@/components/ui/qna-tooltip";
 
-export function Step5Teaching({ data, onNext, onUpdate }: StepProps) {
+export function Step5Teaching({ data, onNext, onPrev, onUpdate }: StepProps) {
   const [teachingMethods, setTeachingMethods] = useState(
     data.teaching_methods_text || ""
   );
@@ -50,11 +52,21 @@ export function Step5Teaching({ data, onNext, onUpdate }: StepProps) {
     onNext();
   };
 
+  const handlePrev = () => {
+    if (teachingMethods || assessmentPlan.length > 0) {
+      onUpdate({
+        teaching_methods_text: teachingMethods,
+        assessment_plan: assessmentPlan,
+      });
+    }
+    onPrev?.();
+  };
+
   if (!generated) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>5단계: 교수학습 및 평가</CardTitle>
+          <StepTitle step={5} title="교수학습 및 평가" />
         </CardHeader>
         <CardContent>
           <p className="text-sm text-gray-600 mb-4">
@@ -76,14 +88,20 @@ export function Step5Teaching({ data, onNext, onUpdate }: StepProps) {
               }
             ]}
           />
-          <Button
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            className="w-full"
-          >
-            {isGenerating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            생성 및 다음 단계로
-          </Button>
+          <div className="flex gap-3">
+            <Button onClick={handlePrev} variant="outline" className="flex-1">
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              이전 단계
+            </Button>
+            <Button
+              onClick={handleGenerate}
+              disabled={isGenerating}
+              className="flex-1"
+            >
+              {isGenerating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              생성
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
@@ -92,11 +110,11 @@ export function Step5Teaching({ data, onNext, onUpdate }: StepProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>교수학습방법 및 평가 수정</CardTitle>
+        <StepTitle step={5} title="교수학습 및 평가 수정" />
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
-          <Label>교수학습방법</Label>
+          <SectionTitle title="교수학습방법" variant="accent" />
           <Textarea
             value={teachingMethods}
             onChange={(e) => setTeachingMethods(e.target.value)}
@@ -106,7 +124,7 @@ export function Step5Teaching({ data, onNext, onUpdate }: StepProps) {
         </div>
 
         <div>
-          <h3 className="font-semibold mb-4">평가계획</h3>
+          <SectionTitle title="평가계획" variant="accent" />
           <div className="space-y-6">
             {assessmentPlan.map((plan, idx) => (
               <div key={idx} className="border p-4 rounded-lg space-y-4">
@@ -151,7 +169,7 @@ export function Step5Teaching({ data, onNext, onUpdate }: StepProps) {
                 </div>
 
                 <div>
-                  <Label>평가기준 - 상</Label>
+                  <Label>평가수준 - 상</Label>
                   <Textarea
                     value={plan.criteria_high}
                     onChange={(e) => {
@@ -165,7 +183,7 @@ export function Step5Teaching({ data, onNext, onUpdate }: StepProps) {
                 </div>
 
                 <div>
-                  <Label>평가기준 - 중</Label>
+                  <Label>평가수준 - 중</Label>
                   <Textarea
                     value={plan.criteria_mid}
                     onChange={(e) => {
@@ -179,7 +197,7 @@ export function Step5Teaching({ data, onNext, onUpdate }: StepProps) {
                 </div>
 
                 <div>
-                  <Label>평가기준 - 하</Label>
+                  <Label>평가수준 - 하</Label>
                   <Textarea
                     value={plan.criteria_low}
                     onChange={(e) => {
@@ -196,9 +214,15 @@ export function Step5Teaching({ data, onNext, onUpdate }: StepProps) {
           </div>
         </div>
 
-        <Button onClick={handleNext} className="w-full">
-          저장 및 다음 단계로
-        </Button>
+        <div className="flex gap-3">
+          <Button onClick={handlePrev} variant="outline" className="flex-1">
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            이전 단계
+          </Button>
+          <Button onClick={handleNext} className="flex-1">
+            저장 및 다음 단계로
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

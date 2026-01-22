@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { StepTitle } from "@/components/ui/step-title";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { StepProps } from "@/types";
-import { Download, RefreshCw, Edit2, Save } from "lucide-react";
+import { Download, RefreshCw, Edit2, Save, ChevronLeft, FileSpreadsheet, FileText } from "lucide-react";
 
 // "1차시" -> "1", "2" -> "2" 형태로 정리
 function formatLessonNumber(lessonNumber: string | number): string {
@@ -20,7 +21,7 @@ function formatLessonNumber(lessonNumber: string | number): string {
   return str.replace(/차시/g, "").trim();
 }
 
-export function Step7Review({ data, onUpdate }: StepProps) {
+export function Step7Review({ data, onPrev, onUpdate }: StepProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(data);
   const [selectedSheets, setSelectedSheets] = useState({
@@ -38,12 +39,12 @@ export function Step7Review({ data, onUpdate }: StepProps) {
     setIsEditing(false);
   };
 
-  const handleDownload = async (type: string) => {
+  const handleDownload = async (type: string, format: 'xlsx' | 'docx' = 'xlsx') => {
     try {
       const response = await fetch("/api/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, data: editData, selectedSheets }),
+        body: JSON.stringify({ type, data: editData, selectedSheets, format }),
       });
 
       if (!response.ok) throw new Error("다운로드 실패");
@@ -52,7 +53,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${editData.activity_name || "학교자율시간계획서"}.xlsx`;
+      a.download = `${editData.activity_name || "학교자율시간계획서"}.${format}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -69,10 +70,17 @@ export function Step7Review({ data, onUpdate }: StepProps) {
     }
   };
 
+  const handlePrev = () => {
+    if (onUpdate) {
+      onUpdate(editData);
+    }
+    onPrev?.();
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>7단계: 최종 계획서 검토</CardTitle>
+        <StepTitle step={7} title="최종 계획서 검토" />
         <div className="flex gap-2">
           {isEditing ? (
             <Button onClick={handleSave} size="sm">
@@ -283,7 +291,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                         />
                       </div>
                       <div>
-                        <Label>상 기준</Label>
+                        <Label>상 수준</Label>
                         <Textarea
                           value={plan.criteria_high}
                           onChange={(e) => {
@@ -295,7 +303,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                         />
                       </div>
                       <div>
-                        <Label>중 기준</Label>
+                        <Label>중 수준</Label>
                         <Textarea
                           value={plan.criteria_mid}
                           onChange={(e) => {
@@ -307,7 +315,7 @@ export function Step7Review({ data, onUpdate }: StepProps) {
                         />
                       </div>
                       <div>
-                        <Label>하 기준</Label>
+                        <Label>하 수준</Label>
                         <Textarea
                           value={plan.criteria_low}
                           onChange={(e) => {
@@ -444,12 +452,22 @@ export function Step7Review({ data, onUpdate }: StepProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mt-6">
-          <Button onClick={() => handleDownload("final")} className="w-full">
-            <Download className="mr-2 h-4 w-4" />
-            선택한 시트 다운로드
+        <div className="grid grid-cols-2 gap-3 mt-6">
+          <Button onClick={() => handleDownload("final", "xlsx")} className="w-full">
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Excel 다운로드
           </Button>
+          <Button onClick={() => handleDownload("final", "docx")} className="w-full">
+            <FileText className="mr-2 h-4 w-4" />
+            Word 다운로드
+          </Button>
+        </div>
 
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          <Button onClick={handlePrev} variant="outline" className="w-full">
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            이전 단계
+          </Button>
           <Button onClick={handleReset} variant="outline" className="w-full">
             <RefreshCw className="mr-2 h-4 w-4" />
             새로 만들기

@@ -36,10 +36,23 @@ export default function Home() {
     }
   };
 
+  const handlePrev = () => {
+    if (currentStep > 1) {
+      setStep(currentStep - 1);
+    }
+  };
+
+  const handleGoToStep = (step: number) => {
+    if (step >= 1 && step <= 7) {
+      setStep(step);
+    }
+  };
+
   const renderStep = () => {
     const stepProps = {
       data,
       onNext: handleNext,
+      onPrev: handlePrev,
       onUpdate: updateData,
     };
 
@@ -80,19 +93,6 @@ export default function Home() {
           >
             <motion.div
               className="inline-block mb-2 sm:mb-3"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            >
-              <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-sky-50 text-sky-700 rounded-full text-xs sm:text-sm font-semibold">
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                </svg>
-                AI 자동 생성
-              </span>
-            </motion.div>
-            <motion.h1
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-2 sm:mb-3 tracking-tight leading-tight"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{
@@ -102,21 +102,17 @@ export default function Home() {
                 delay: 0.1
               }}
             >
-              학교자율시간 계획서 만들기
-            </motion.h1>
-            <motion.p
-              className="text-base sm:text-lg md:text-xl text-gray-600 font-medium"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{
-                type: "spring",
-                stiffness: 120,
-                damping: 20,
-                delay: 0.2
-              }}
-            >
-              7단계로 쉽고 빠르게 완성하세요
-            </motion.p>
+              <div className="inline-flex items-center gap-4 sm:gap-5">
+                <img
+                  src="/signature10_수정.jpg"
+                  alt="학교자율시간 아이콘"
+                  className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-xl object-cover"
+                />
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
+                  학교자율시간올인원
+                </h1>
+              </div>
+            </motion.div>
           </motion.header>
 
         <motion.div
@@ -130,7 +126,7 @@ export default function Home() {
             delay: 0.3
           }}
         >
-          <ProgressSteps currentStep={currentStep} />
+          <ProgressSteps currentStep={currentStep} onGoToStep={handleGoToStep} />
         </motion.div>
 
         <AnimatePresence mode="wait">
@@ -156,14 +152,19 @@ export default function Home() {
           transition={{ delay: 0.5 }}
         >
           <motion.div
-            className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/50 backdrop-blur-sm rounded-full"
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-sky-50 to-blue-50 rounded-2xl px-5 sm:px-6 py-3"
             whileHover={{
               scale: 1.02,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+              boxShadow: "0 8px 20px rgba(14, 165, 233, 0.15)"
             }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
-            <span className="text-lg sm:text-xl md:text-2xl font-medium text-gray-600">
+            <img
+              src="/symbol1.jpg"
+              alt="경상북도 심볼"
+              className="h-8 sm:h-9 md:h-10 w-auto"
+            />
+            <span className="text-base sm:text-lg md:text-xl font-semibold text-gray-700">
               제작: 경상북도교육청 유초등교육과
             </span>
           </motion.div>

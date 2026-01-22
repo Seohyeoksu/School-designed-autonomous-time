@@ -19,7 +19,7 @@ const initialData: ProjectData = {
   semester: [],
   school_context: {
     student_count: undefined,
-    region_type: '',
+    region_type: [],
     class_size: undefined,
   },
 };

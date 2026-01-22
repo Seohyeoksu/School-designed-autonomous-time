@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import ExcelJS from 'exceljs';
+import { generateSchoolPlanDocx } from '@/lib/docx-generator';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { type, data, selectedSheets } = body;
+    const { type, data, selectedSheets, format = 'xlsx' } = body;
+
+    // DOCX 형식 요청 처리
+    if (format === 'docx') {
+      const buffer = await generateSchoolPlanDocx(data, type, selectedSheets);
+      const filename = data.activity_name || '계획서';
+      const encodedFilename = encodeURIComponent(filename);
+
+      return new NextResponse(buffer, {
+        headers: {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'Content-Disposition': `attachment; filename="${encodedFilename}.docx"; filename*=UTF-8''${encodedFilename}.docx`,
+        },
+      });
+    }
 
     const workbook = new ExcelJS.Workbook();
 

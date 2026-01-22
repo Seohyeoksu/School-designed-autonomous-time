@@ -67,7 +67,7 @@ function cleanSourceContent(content: string): string {
 const INITIAL_MESSAGE: Message = {
   id: 'welcome',
   role: 'assistant',
-  content: `안녕하세요! **학교자율시간 안내 도우미**입니다.
+  content: `안녕하세요! 학교자율시간 안내 도우미입니다.
 
 2022 개정 교육과정의 학교자율시간에 대해 질문해주세요.`,
   timestamp: new Date('2024-01-01T00:00:00'),

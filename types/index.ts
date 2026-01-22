@@ -1,6 +1,6 @@
 export interface SchoolContext {
   student_count?: number;        // 학교 규모 (학생수)
-  region_type?: '도시' | '농촌' | '어촌' | '';  // 지역특성
+  region_type?: string[];        // 지역특성 (복수선택 가능: 도시, 농촌, 어촌)
   class_size?: number;           // 학급당 학생수
 }
 
@@ -69,5 +69,6 @@ export interface ProjectData extends BasicInfo {
 export interface StepProps {
   data: ProjectData;
   onNext: () => void;
+  onPrev?: () => void;
   onUpdate: (data: Partial<ProjectData>) => void;
 }

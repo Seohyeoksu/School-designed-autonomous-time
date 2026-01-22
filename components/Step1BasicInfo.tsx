@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { StepTitle } from "@/components/ui/step-title";
 import {
   Tooltip,
   TooltipContent,
@@ -131,7 +132,7 @@ export function Step1BasicInfo({ data, onNext, onUpdate }: StepProps) {
       <TooltipProvider>
         <Card>
           <CardHeader>
-            <CardTitle>1단계: 기본 정보</CardTitle>
+            <StepTitle step={1} title="기본 정보" />
           </CardHeader>
           <CardContent className="space-y-6">
           {/* 학교급 */}
@@ -214,13 +215,16 @@ export function Step1BasicInfo({ data, onNext, onUpdate }: StepProps) {
             <Label>총 차시</Label>
             <Input
               type="number"
-              value={formData.total_hours}
-              onChange={(e) =>
+              value={formData.total_hours || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                // 빈 값이면 0으로, 아니면 앞의 0을 제거하고 숫자로 변환
+                const numValue = value === '' ? 0 : parseInt(value, 10);
                 setFormData({
                   ...formData,
-                  total_hours: parseInt(e.target.value) || 0,
-                })
-              }
+                  total_hours: isNaN(numValue) ? 0 : Math.min(Math.max(numValue, 0), 68),
+                });
+              }}
               min={1}
               max={68}
               className="mt-2"
@@ -267,7 +271,7 @@ export function Step1BasicInfo({ data, onNext, onUpdate }: StepProps) {
                       ...formData,
                       school_context: {
                         student_count: undefined,
-                        region_type: '',
+                        region_type: [],
                         class_size: undefined,
                       },
                     });
@@ -296,21 +300,30 @@ export function Step1BasicInfo({ data, onNext, onUpdate }: StepProps) {
                   />
                 </div>
 
-                {/* 지역특성 */}
+                {/* 지역특성 (복수선택 가능) */}
                 <div>
-                  <Label className="text-sm">지역특성</Label>
+                  <Label className="text-sm">지역특성 (복수선택 가능)</Label>
                   <div className="flex gap-2 mt-1">
-                    {REGION_TYPES.map((region) => (
-                      <Button
-                        key={region}
-                        type="button"
-                        variant={formData.school_context?.region_type === region ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => updateSchoolContext('region_type', region)}
-                      >
-                        {region}
-                      </Button>
-                    ))}
+                    {REGION_TYPES.map((region) => {
+                      const currentRegions = formData.school_context?.region_type || [];
+                      const isSelected = currentRegions.includes(region);
+                      return (
+                        <Button
+                          key={region}
+                          type="button"
+                          variant={isSelected ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => {
+                            const newRegions = isSelected
+                              ? currentRegions.filter((r) => r !== region)
+                              : [...currentRegions, region];
+                            updateSchoolContext('region_type', newRegions);
+                          }}
+                        >
+                          {region}
+                        </Button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -375,7 +388,7 @@ export function Step1BasicInfo({ data, onNext, onUpdate }: StepProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>생성된 내용 확인 및 수정</CardTitle>
+        <StepTitle step={1} title="기본 정보 확인 및 수정" />
       </CardHeader>
       <CardContent className="space-y-6">
         <div>

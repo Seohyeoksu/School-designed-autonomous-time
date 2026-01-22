@@ -18,7 +18,7 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2 font-bold text-xl">
             <BookOpen className="h-6 w-6" />
-            학교자율시간 올인원
+            학교자율시간올인원
           </Link>
 
           <div className="flex items-center gap-1">

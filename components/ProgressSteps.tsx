@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 
 interface ProgressStepsProps {
   currentStep: number;
+  onGoToStep?: (step: number) => void;
 }
 
 const steps = [
@@ -18,7 +19,7 @@ const steps = [
   "최종 검토",
 ];
 
-export function ProgressSteps({ currentStep }: ProgressStepsProps) {
+export function ProgressSteps({ currentStep, onGoToStep }: ProgressStepsProps) {
   const progressPercentage = (currentStep / steps.length) * 100;
 
   return (
@@ -69,12 +70,19 @@ export function ProgressSteps({ currentStep }: ProgressStepsProps) {
           const isCompleted = stepNumber < currentStep;
           const isActive = stepNumber === currentStep;
 
+          const isClickable = (isCompleted || isActive) && onGoToStep;
+
           return (
             <motion.div
               key={step}
-              className="flex flex-col items-center flex-1"
-              whileHover={{ scale: 1.05 }}
+              className={cn(
+                "flex flex-col items-center flex-1",
+                isClickable && "cursor-pointer"
+              )}
+              whileHover={{ scale: isClickable ? 1.08 : 1.05 }}
+              whileTap={isClickable ? { scale: 0.95 } : undefined}
               transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              onClick={() => isClickable && onGoToStep(stepNumber)}
             >
               {/* Circle */}
               <motion.div
@@ -82,7 +90,8 @@ export function ProgressSteps({ currentStep }: ProgressStepsProps) {
                   "w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-xs sm:text-sm font-bold mb-2 sm:mb-2.5",
                   isCompleted && "bg-sky-500 text-white shadow-sm",
                   isActive && "bg-sky-500 text-white shadow-md ring-3 ring-sky-100",
-                  !isCompleted && !isActive && "bg-gray-100 text-gray-400"
+                  !isCompleted && !isActive && "bg-gray-100 text-gray-400",
+                  isClickable && "hover:ring-2 hover:ring-sky-300"
                 )}
                 initial={false}
                 animate={
@@ -137,6 +146,7 @@ export function ProgressSteps({ currentStep }: ProgressStepsProps) {
           const stepNumber = index + 1;
           const isCompleted = stepNumber < currentStep;
           const isActive = stepNumber === currentStep;
+          const isClickable = (isCompleted || isActive) && onGoToStep;
 
           return (
             <motion.div
@@ -146,7 +156,8 @@ export function ProgressSteps({ currentStep }: ProgressStepsProps) {
                 isActive ? "w-8" : "w-2",
                 isCompleted && "bg-sky-500",
                 isActive && "bg-sky-500",
-                !isCompleted && !isActive && "bg-gray-200"
+                !isCompleted && !isActive && "bg-gray-200",
+                isClickable && "cursor-pointer"
               )}
               initial={false}
               animate={{
@@ -158,6 +169,8 @@ export function ProgressSteps({ currentStep }: ProgressStepsProps) {
                 stiffness: 300,
                 damping: 25
               }}
+              onClick={() => isClickable && onGoToStep(stepNumber)}
+              whileTap={isClickable ? { scale: 0.9 } : undefined}
             />
           );
         })}
