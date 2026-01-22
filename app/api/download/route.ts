@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       const filename = data.activity_name || '계획서';
       const encodedFilename = encodeURIComponent(filename);
 
-      return new NextResponse(buffer, {
+      return new NextResponse(new Uint8Array(buffer), {
         headers: {
           'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
           'Content-Disposition': `attachment; filename="${encodedFilename}.docx"; filename*=UTF-8''${encodedFilename}.docx`,
